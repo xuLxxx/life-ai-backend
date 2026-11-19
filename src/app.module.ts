@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthenticationModule } from '@nestjs/authentication';
-import { FileMailTransport, FileTemplateEngine, MailModule, SmtpTransport } from '@nestjs/mail';
+import { FileMailTransport, FileTemplateEngine, MailModule, MailTransport, SmtpTransport } from '@nestjs/mail';
 import { join } from 'node:path';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -14,7 +14,9 @@ import { ProfileController } from './profile/profile.controller.js';
 import { ProfileService } from './profile/profile.service.js';
 import { VerificationMail } from './mail/verification.mail.js';
 
-export const { ObserveModule, ObserveInstrument } = createObserveModule();
+export const { ObserveModule, ObserveInstrument } = createObserveModule({
+  skipInstrumentation: (instance) => instance instanceof MailTransport,
+});
 
 @Module({
   imports: [

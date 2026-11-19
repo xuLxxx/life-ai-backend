@@ -55,6 +55,14 @@ export class AuthController {
     return response.redirect(target);
   }
 
+  @Get('verified')
+  @ApiOperation({ summary: '本地邮箱验证完成页面' })
+  verified() {
+    return {
+      message: '邮箱验证成功，现在可以登录 Life AI。',
+    };
+  }
+
   private safeRedirect(value: string) {
     const allowed = process.env.WEB_ORIGIN;
     if (!allowed || !value) return '/';
