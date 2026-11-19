@@ -1,17 +1,18 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { SupabaseService } from '../supabase/supabase.service.js';
-import type { SupabaseUser } from '../supabase/supabase-auth.js';
-import type { AvatarUploadDto, UpdateProfileDto } from './profile.schemas.js';
+import { BadRequestException, Injectable } from "@nestjs/common";
+import type { SupabaseService } from "../supabase/supabase.service.js";
+import type { SupabaseUser } from "../supabase/supabase-auth.js";
+import type { AvatarUploadDto, UpdateProfileDto } from "./profile.schemas.js";
 
 @Injectable()
 export class ProfileService {
   constructor(private readonly supabase: SupabaseService) {}
 
   async get(user: SupabaseUser, token: string) {
-    const { data, error } = await this.supabase.forUser(token)
-      .from('profiles')
-      .select('id, display_name, bio, avatar_path, created_at, updated_at')
-      .eq('id', user.id)
+    const { data, error } = await this.supabase
+      .forUser(token)
+      .from("profiles")
+      .select("id, display_name, bio, avatar_path, created_at, updated_at")
+      .eq("id", user.id)
       .single();
     if (error) throw new BadRequestException(error.message);
     return this.mapProfile(data);
@@ -26,18 +27,20 @@ export class ProfileService {
     };
     if (dto.avatarPath) this.assertOwnAvatarPath(user.id, dto.avatarPath);
 
-    const { data, error } = await this.supabase.forUser(token)
-      .from('profiles')
+    const { data, error } = await this.supabase
+      .forUser(token)
+      .from("profiles")
       .update(update)
-      .eq('id', user.id)
-      .select('id, display_name, bio, avatar_path, created_at, updated_at')
+      .eq("id", user.id)
+      .select("id, display_name, bio, avatar_path, created_at, updated_at")
       .single();
     if (error) throw new BadRequestException(error.message);
 
     if (dto.displayName !== undefined) {
-      const { error: authError } = await this.supabase.admin.auth.admin.updateUserById(user.id, {
-        user_metadata: { display_name: dto.displayName },
-      });
+      const { error: authError } =
+        await this.supabase.admin.auth.admin.updateUserById(user.id, {
+          user_metadata: { display_name: dto.displayName },
+        });
       if (authError) throw new BadRequestException(authError.message);
     }
     return this.mapProfile(data);
@@ -46,24 +49,24 @@ export class ProfileService {
   async createAvatarUpload(user: SupabaseUser, dto: AvatarUploadDto) {
     const path = `${user.id}/avatar-${Date.now()}.${dto.extension}`;
     const { data, error } = await this.supabase.admin.storage
-      .from('avatars')
+      .from("avatars")
       .createSignedUploadUrl(path, { upsert: true });
     if (error) throw new BadRequestException(error.message);
-    return { path, token: data.token, bucket: 'avatars' };
+    return { path, token: data.token, bucket: "avatars" };
   }
 
   async avatarUrl(user: SupabaseUser, path: string) {
     this.assertOwnAvatarPath(user.id, path);
     const { data, error } = await this.supabase.admin.storage
-      .from('avatars')
+      .from("avatars")
       .createSignedUrl(path, 3600);
     if (error) throw new BadRequestException(error.message);
     return { url: data.signedUrl, expiresIn: 3600 };
   }
 
   private assertOwnAvatarPath(userId: string, path: string) {
-    if (!path.startsWith(`${userId}/`) || path.includes('..')) {
-      throw new BadRequestException('头像路径无效');
+    if (!path.startsWith(`${userId}/`) || path.includes("..")) {
+      throw new BadRequestException("头像路径无效");
     }
   }
 

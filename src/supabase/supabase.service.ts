@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { createClient } from '@supabase/supabase-js';
+import { Injectable } from "@nestjs/common";
+import { createClient } from "@supabase/supabase-js";
 
-const options = { auth: { persistSession: false, autoRefreshToken: false } } as const;
+const options = {
+  auth: { persistSession: false, autoRefreshToken: false },
+} as const;
 
 @Injectable()
 export class SupabaseService {

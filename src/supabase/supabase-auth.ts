@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
 import {
-  AuthenticationRegistry,
+  type AuthenticationRegistry,
   JwtBearerProvider,
   type JwtClaims,
-} from '@nestjs/authentication';
+} from "@nestjs/authentication";
+import { Injectable } from "@nestjs/common";
 
 export interface SupabaseUser {
   id: string;
@@ -17,7 +17,7 @@ export class SupabaseAuth extends JwtBearerProvider<SupabaseUser> {
     super({
       jwks: `${process.env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`,
       issuer: `${process.env.SUPABASE_URL}/auth/v1`,
-      audience: 'authenticated',
+      audience: "authenticated",
     });
     registry.registerProvider(this);
   }
