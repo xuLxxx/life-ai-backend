@@ -16,7 +16,7 @@ import {
 @Public()
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(private readonly auth: AuthService) { }
 
   @Post('sign-up')
   @HttpCode(201)
@@ -49,13 +49,13 @@ export class AuthController {
   ) {
     try {
       if (type !== 'signup' && type !== 'magiclink') {
-        return response.redirect(this.frontendPage('/verify-mail-failed', '验证类型无效'));
+        return response.redirect(this.frontendPage('/auth/verify-mail-failed', '验证类型无效'));
       }
       await this.auth.verify(tokenHash, type);
       return response.redirect(this.safeRedirect(redirectTo));
     } catch {
       return response.redirect(
-        this.frontendPage('/verify-mail-failed', '验证链接无效或已过期，请重新发送验证邮件'),
+        this.frontendPage('/auth/verify-mail-failed', '验证链接无效或已过期，请重新发送验证邮件'),
       );
     }
   }
