@@ -47,27 +47,35 @@ export class AuthController {
     @Query('redirect_to') redirectTo: string,
     @Res() response: Response,
   ) {
-    if (type !== 'signup' && type !== 'magiclink') {
-      return response.status(400).json({ message: '验证类型无效' });
+    try {
+      if (type !== 'signup' && type !== 'magiclink') {
+        return response.redirect(this.frontendPage('/verify-mail-failed', '验证类型无效'));
+      }
+      await this.auth.verify(tokenHash, type);
+      return response.redirect(this.safeRedirect(redirectTo));
+    } catch {
+      return response.redirect(
+        this.frontendPage('/verify-mail-failed', '验证链接无效或已过期，请重新发送验证邮件'),
+      );
     }
-    await this.auth.verify(tokenHash, type);
-    const target = this.safeRedirect(redirectTo);
-    return response.redirect(target);
   }
 
-  @Get('verified')
-  @ApiOperation({ summary: '本地邮箱验证完成页面' })
-  verified() {
-    return {
-      message: '邮箱验证成功，现在可以登录 Life AI。',
-    };
+  private frontendPage(path: string, message?: string) {
+    const base = process.env.AUTH_VERIFICATION_REDIRECT ?? process.env.WEB_ORIGIN;
+    const url = new URL(path, base ?? 'http://localhost');
+    if (message) url.searchParams.set('message', message);
+    return base ? url.toString() : `${url.pathname}${url.search}`;
   }
 
   private safeRedirect(value: string) {
-    const allowed = process.env.WEB_ORIGIN;
-    if (!allowed || !value) return '/';
-    const origin = new URL(allowed);
-    const target = new URL(value);
-    return target.origin === origin.origin ? target.toString() : origin.toString();
+    try {
+      const allowed = process.env.AUTH_VERIFICATION_REDIRECT ?? process.env.WEB_ORIGIN;
+      if (!allowed || !value) return this.frontendPage('/auth/verified');
+      const origin = new URL(allowed);
+      const target = new URL(value);
+      return target.origin === origin.origin ? target.toString() : origin.toString();
+    } catch {
+      return this.frontendPage('/auth/verified');
+    }
   }
 }
